@@ -16,7 +16,6 @@ selected_date = st.date_input(
 if st.button("Start", type="primary"):
     with st.spinner(f"FETCHING NEWS ON {selected_date} ......"):
         try:
-            news_bi = get_news.from_batteryindustry(selected_date)
             news_es = get_news.from_energystorage(selected_date)
             news_ek = get_news.from_electrek(selected_date)
         except:
