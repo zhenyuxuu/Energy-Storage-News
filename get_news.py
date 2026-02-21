@@ -44,7 +44,7 @@ def from_batteryindustry(date) -> list:
             st.warning('Main article container not found on the page.')
 
     else:
-        st.error('Failed to retrieve the web page. Status code:', response.status_code)
+        st.error(f'Failed to retrieve the web page. Status code: {response.status_code}')
     
     contents_BattIndustry = []
     for url in news_url_set:
@@ -102,8 +102,8 @@ def from_energystorage(date) -> list:
             st.warning('Main article container not found on the page.')
 
     else:
-        st.error('Failed to retrieve the web page. Status code:', response.status_code)
-    
+        st.error(f'Failed to retrieve the web page. Status code: {response.status_code}')
+
     contents_EnergyStorageNews = []
     for url in news_url_set:
         response = requests.get(url, headers=headers)
@@ -158,7 +158,7 @@ def from_electrek(date) -> list:
             st.warning('Main article container not found on the page.')
 
     else:
-        st.error('Failed to retrieve the web page. Status code:', response.status_code)
+        st.error(f'Failed to retrieve the web page. Status code: {response.status_code}')
     
     contents_electrek = []
     for url in news_url_set:
