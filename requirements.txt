@@ -1,5 +1,5 @@
 bs4==0.0.2
 requests==2.31.0
 streamlit==1.44.0
-google-genai
-python-dotenv
+google-genai==1.64.0
+python-dotenv==1.2.1
