@@ -3,13 +3,24 @@ import datetime as dt
 import streamlit as st
 from bs4 import BeautifulSoup
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+}
+
+def clean_text(text):
+    import re
+    text = re.sub(r'\s+', ' ', text)
+    text = text.replace('\n', ' ')
+    text = text.replace('$', '\\$')
+    return text.strip()
+
 
 def from_batteryindustry(date) -> list:
     url = 'https://batteryindustry.net/news/'
 
     cur_date = date.strftime("%d %B %Y")
 
-    response = requests.get(url)
+    response = requests.get(url, headers=headers)
     news_url_set = []
 
     if response.status_code == 200:
@@ -45,9 +56,10 @@ def from_batteryindustry(date) -> list:
             if article:
                 try:
                     paragraph = article.find('p')
-                    st.write(f"**{paragraph.text}** \n\n{url}")
+                    cleaned_text = clean_text(paragraph.text)
+                    st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
                     st.divider()
-                    contents_BattIndustry.append(paragraph.text)
+                    contents_BattIndustry.append(cleaned_text)
                 except:
                     pass
             else:
@@ -63,7 +75,7 @@ def from_energystorage(date) -> list:
 
     cur_date = date.strftime("%B %d, %Y")
 
-    response = requests.get(url)
+    response = requests.get(url, headers=headers)
     news_url_set = []
 
     if response.status_code == 200:
@@ -94,7 +106,7 @@ def from_energystorage(date) -> list:
     
     contents_EnergyStorageNews = []
     for url in news_url_set:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -102,9 +114,10 @@ def from_energystorage(date) -> list:
             if article:
                 try:
                     paragraph = article.find('p')
-                    st.write(f"**{paragraph.text}** \n\n{url}")
+                    cleaned_text = clean_text(paragraph.text)
+                    st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
                     st.divider()
-                    contents_EnergyStorageNews.append(paragraph.text)
+                    contents_EnergyStorageNews.append(cleaned_text)
                 except:
                     pass
             else:
@@ -149,7 +162,7 @@ def from_electrek(date) -> list:
     
     contents_electrek = []
     for url in news_url_set:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
 
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -157,9 +170,10 @@ def from_electrek(date) -> list:
             if article:
                 try:
                     paragraph = article.find('p')
-                    st.write(f"**{paragraph.text}** \n\n{url}")
+                    cleaned_text = clean_text(paragraph.text)
+                    st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
                     st.divider()
-                    contents_electrek.append(paragraph.text)
+                    contents_electrek.append(cleaned_text)
                 except:
                     pass
             else:
