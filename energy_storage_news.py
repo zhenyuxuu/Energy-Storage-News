@@ -32,7 +32,7 @@ for key in session_keys:
 col_start, col_download, col_spacer = st.columns([2, 3, 5])
 
 with col_start:
-    start_btn = st.button("Start", type="primary")
+    start_btn = st.button("Start / 开始", type="primary")
 
 dl_placeholder = col_download.empty()
 
