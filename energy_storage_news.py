@@ -5,8 +5,6 @@ from markdown import markdown
 import get_news
 from translator import translate_news_to_chinese, save_translation_to_txt
 
-URL_PATTERN = re.compile(r'(https?://[^\s\)<>\]\[\'"]+)')
-
 col_title, col_lang = st.columns([4, 1])
 
 with col_title:
@@ -37,57 +35,20 @@ with col_start:
 dl_placeholder = col_download.empty()
 
 if start_btn:
-    captured_urls = []
-    
-    # Save Streamlit methods
-    orig_markdown = st.markdown
-    orig_write = st.write
-    orig_divider = st.divider
-    
-    def catch_output(*args, **kwargs):
-        for arg in args:
-            urls = URL_PATTERN.findall(str(arg))
-            for found_url in urls:
-                if found_url not in captured_urls:
-                    captured_urls.append(found_url)
-                    
-    # Apply monkeypatching
-    st.markdown = catch_output
-    st.write = catch_output
-
     with st.spinner(f"FETCHING NEWS ON {selected_date} ......"):
         try:
             news_es = get_news.from_energystorage(selected_date)
             news_ek = get_news.from_electrek(selected_date)
-            all_news_en = news_es + news_ek
+            
+            processed_news = news_es + news_ek
         except Exception as e:
-            orig_write(f"Fetch Error: {e}")
-            all_news_en = []
-        finally:
-            st.markdown = orig_markdown
-            st.write = orig_write
-            st.divider = orig_divider
+            st.error(f"Fetch Error: {e}")
+            processed_news = []
 
-    if not all_news_en:
+    if not processed_news:
         st.warning(f"NO NEWS ON {selected_date} - PLEASE CHANGE THE DATE")
         st.session_state.news_data = None
     else:
-        processed_news = []
-        for i, item in enumerate(all_news_en):
-            raw_text = str(item)
-            url = captured_urls[i] if i < len(captured_urls) else ""
-            
-            if not url:
-                url_match = URL_PATTERN.search(raw_text)
-                if url_match:
-                    url = url_match.group(1)
-            
-            clean_title = raw_text.replace(url, "") if url else raw_text
-            clean_title = clean_title.replace("**", "")
-            clean_title = re.sub(r'\[\s*\]\(\s*\)', '', clean_title).strip()
-            
-            processed_news.append({"title": clean_title, "url": url})
-
         display_titles = []
         if lang_choice == "中文":
             with st.spinner("翻译中，请等待 ......"):
