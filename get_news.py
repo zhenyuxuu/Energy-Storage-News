@@ -58,7 +58,6 @@ def from_batteryindustry(date) -> list:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
                     st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
-                    st.divider()
                     contents_BattIndustry.append(cleaned_text)
                 except:
                     pass
@@ -116,7 +115,6 @@ def from_energystorage(date) -> list:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
                     st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
-                    st.divider()
                     contents_EnergyStorageNews.append(cleaned_text)
                 except:
                     pass
@@ -172,7 +170,6 @@ def from_electrek(date) -> list:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
                     st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
-                    st.divider()
                     contents_electrek.append(cleaned_text)
                 except:
                     pass
