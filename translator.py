@@ -1,11 +1,10 @@
-import os
 import streamlit as st
 import google.genai as genai
 
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-def translate_news_to_chinese(news_list):
+def to_chinese(news_list):
     if not news_list:
         return "No news found."
 
@@ -27,10 +26,3 @@ News content:
         return response.text
     except Exception as e:
         return f"Translation failed: {str(e)}"
-
-def save_translation_to_txt(content, date_obj):
-    """Saves the content to a .txt file named by date."""
-    filename = f"translation_{date_obj.strftime('%Y-%m-%d')}.txt"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(content)
-    return filename

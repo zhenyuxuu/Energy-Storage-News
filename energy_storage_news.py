@@ -3,7 +3,7 @@ from datetime import date
 import streamlit as st
 from markdown import markdown
 import get_news
-from translator import translate_news_to_chinese, save_translation_to_txt
+import translator
 
 col_title, col_lang = st.columns([4, 1])
 
@@ -21,7 +21,7 @@ with col_lang:
 selected_date = st.date_input("Date / 日期:", date.today())
 
 # Session State
-session_keys = ["news_data", "display_titles", "txt_content", "button_label"]
+session_keys = ["raw_news", "display_news", "download_news", "button_label"]
 for key in session_keys:
     if key not in st.session_state:
         st.session_state[key] = None
@@ -40,58 +40,48 @@ if start_btn:
             news_es = get_news.from_energystorage(selected_date)
             news_ek = get_news.from_electrek(selected_date)
             
-            processed_news = news_es + news_ek
+            all_news = news_es + news_ek
         except Exception as e:
             st.error(f"Fetch Error: {e}")
-            processed_news = []
+            all_news = []
 
-    if not processed_news:
+    if not all_news:
         st.warning(f"NO NEWS ON {selected_date} - PLEASE CHANGE THE DATE")
         st.session_state.news_data = None
     else:
-        display_titles = []
+        display_news = []
         if lang_choice == "中文":
             with st.spinner("翻译中，请等待 ......"):
-                titles_to_translate = [n["title"] for n in processed_news]
-                translated_data = translate_news_to_chinese(titles_to_translate)
-                
-                if isinstance(translated_data, str):
-                    # split numbered list
-                    split_items = re.split(r'\n?\d+\.\s*', translated_data)
-                    display_titles = [p.strip() for p in split_items if p.strip()]
-                else:
-                    display_titles = translated_data
-        else:
-            display_titles = [n["title"] for n in processed_news]
+                news_en = [n.get("summary", n.get("title", "")) for n in all_news]
+                news_cn = translator.to_chinese(news_en)
 
-        download_lines = []
-        for i, news_item in enumerate(processed_news):
-            title_to_show = display_titles[i] if i < len(display_titles) else news_item["title"]
-            download_lines.append(f"{i+1}. {title_to_show}")
+                split_news = re.split(r'(?:^|\n)\s*\d+\.\s*', news_cn)
+                display_news = [p.strip() for p in split_news if p.strip()]
+        else:
+            display_news = [n.get("summary", n.get("title", "")) for n in all_news]
+
+        formatted_news = [f"{i+1}. {news_item}" for i, news_item in enumerate(display_news)]
 
         # Update Session State
-        st.session_state.news_data = processed_news
-        st.session_state.display_titles = display_titles
-        st.session_state.txt_content = "\n\n".join(download_lines)
-        st.session_state.button_label = "下载 中文.txt" if lang_choice == "中文" else "Download English.txt"
+        st.session_state.raw_news = all_news
+        st.session_state.display_news = display_news
+        st.session_state.download_news = "\n\n".join(formatted_news)
+        st.session_state.button_label = "下载全部新闻" if lang_choice == "中文" else "Download All News"
 
-if st.session_state.news_data:
+if st.session_state.raw_news:
     dl_placeholder.download_button(
         label=st.session_state.button_label,
-        data=st.session_state.txt_content,
+        data=st.session_state.download_news,
         file_name=f"news_{selected_date}_{lang_choice.lower()}.txt",
         mime="text/plain"
     )
 
-    for i, news_item in enumerate(st.session_state.news_data):
-        if i < len(st.session_state.display_titles):
-            title_to_show = st.session_state.display_titles[i]
-        else:
-            title_to_show = news_item["title"]
+    for i, news_item in enumerate(st.session_state.raw_news):
+        summary_to_show = st.session_state.display_news[i]
             
         url = news_item["url"]
 
-        st.markdown(f"**{title_to_show}**")
+        st.markdown(f"**{summary_to_show}**")
         if url:
             st.markdown(url)
         st.divider()
