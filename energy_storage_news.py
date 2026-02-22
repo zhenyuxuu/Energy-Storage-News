@@ -52,13 +52,13 @@ if start_btn:
         display_news = []
         if lang_choice == "中文":
             with st.spinner("翻译中，请等待 ......"):
-                news_en = [n.get("summary", n.get("title", "")) for n in all_news]
+                news_en = [n.get("summary", "") for n in all_news]
                 news_cn = translator.to_chinese(news_en)
 
                 split_news = re.split(r'(?:^|\n)\s*\d+\.\s*', news_cn)
                 display_news = [p.strip() for p in split_news if p.strip()]
         else:
-            display_news = [n.get("summary", n.get("title", "")) for n in all_news]
+            display_news = [n.get("summary", "") for n in all_news]
 
         formatted_news = [f"{i+1}. {news_item}" for i, news_item in enumerate(display_news)]
 
@@ -77,11 +77,11 @@ if st.session_state.raw_news:
     )
 
     for i, news_item in enumerate(st.session_state.raw_news):
-        summary_to_show = st.session_state.display_news[i]
+        display_news_item = st.session_state.display_news[i]
             
         url = news_item["url"]
 
-        st.markdown(f"**{summary_to_show}**")
+        st.markdown(f"**{display_news_item}**")
         if url:
             st.markdown(url)
         st.divider()

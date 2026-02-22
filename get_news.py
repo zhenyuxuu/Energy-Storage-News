@@ -33,9 +33,9 @@ def from_batteryindustry(date) -> list:
 
             for sub_div in all_sub_divs_breaking:
                 link = sub_div.find('h3').find('a').get('href')
-                news_date = sub_div.find('time').text
+                date = sub_div.find('time').text
 
-                if news_date == cur_date:
+                if date == cur_date:
                     news_url_set.append(str(link))
         else:
             st.warning('Main article container not found on the page.')
@@ -53,7 +53,7 @@ def from_batteryindustry(date) -> list:
                 try:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
-                    contents_BattIndustry.append({"title": cleaned_text, "url": url})
+                    contents_BattIndustry.append({"summary": cleaned_text, "url": url})
                 except:
                     pass
             else:
@@ -83,9 +83,9 @@ def from_energystorage(date) -> list:
             for sub_div in all_sub_divs:
                 try:
                     link = sub_div.find('a').get('href') 
-                    news_date = sub_div.find('div', class_='jet-listing-dynamic-field__content').text
+                    date = sub_div.find('div', class_='jet-listing-dynamic-field__content').text
 
-                    if news_date == cur_date:
+                    if date == cur_date:
                         news_url_set.append(str(link))
                 except:
                     pass
@@ -105,8 +105,7 @@ def from_energystorage(date) -> list:
                 try:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
-                    # Return dictionary instead of rendering markdown
-                    contents_EnergyStorageNews.append({"title": cleaned_text, "url": url})
+                    contents_EnergyStorageNews.append({"summary": cleaned_text, "url": url})
                 except:
                     pass
             else:
@@ -156,8 +155,7 @@ def from_electrek(date) -> list:
                 try:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
-                    # Return dictionary instead of rendering markdown
-                    contents_electrek.append({"title": cleaned_text, "url": url})
+                    contents_electrek.append({"summary": cleaned_text, "url": url})
                 except:
                     pass
             else:
@@ -179,6 +177,6 @@ if __name__ == "__main__":
     print(f'Total News on {mydate} is: {len(all_news)}')
 
     for news in all_news:
-        print(f"Title: {news['title']}")
+        print(f"Summary: {news['summary']}")
         print(f"URL: {news['url']}")
         print('-'*50)
