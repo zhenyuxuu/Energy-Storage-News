@@ -17,9 +17,7 @@ def clean_text(text):
 
 def from_batteryindustry(date) -> list:
     url = 'https://batteryindustry.net/news/'
-
     cur_date = date.strftime("%d %B %Y")
-
     response = requests.get(url, headers=headers)
     news_url_set = []
 
@@ -39,10 +37,8 @@ def from_batteryindustry(date) -> list:
 
                 if date == cur_date:
                     news_url_set.append(str(link))
-
         else:
             st.warning('Main article container not found on the page.')
-
     else:
         st.error(f'Failed to retrieve the web page. Status code: {response.status_code}')
     
@@ -57,9 +53,7 @@ def from_batteryindustry(date) -> list:
                 try:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
-                    st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
-                    st.divider()
-                    contents_BattIndustry.append(cleaned_text)
+                    contents_BattIndustry.append({"summary": cleaned_text, "url": url})
                 except:
                     pass
             else:
@@ -72,9 +66,7 @@ def from_batteryindustry(date) -> list:
 
 def from_energystorage(date) -> list:
     url = 'https://www.energy-storage.news/category/news/'
-
     cur_date = date.strftime("%B %d, %Y")
-
     response = requests.get(url, headers=headers)
     news_url_set = []
 
@@ -97,10 +89,8 @@ def from_energystorage(date) -> list:
                         news_url_set.append(str(link))
                 except:
                     pass
-
         else:
             st.warning('Main article container not found on the page.')
-
     else:
         st.error(f'Failed to retrieve the web page. Status code: {response.status_code}')
 
@@ -115,9 +105,7 @@ def from_energystorage(date) -> list:
                 try:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
-                    st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
-                    st.divider()
-                    contents_EnergyStorageNews.append(cleaned_text)
+                    contents_EnergyStorageNews.append({"summary": cleaned_text, "url": url})
                 except:
                     pass
             else:
@@ -130,9 +118,7 @@ def from_energystorage(date) -> list:
 
 def from_electrek(date) -> list:
     cur_date = date.strftime("%Y/%m/%d/")
-
     url = 'https://electrek.co/' + cur_date
-
     response = requests.get(url)
     news_url_set = []
 
@@ -149,14 +135,12 @@ def from_electrek(date) -> list:
                 articles = sub_div.find_all('article', class_='article standard')
                 for article in articles:
                     link = article.find('a', class_='article__title-link').get('href')
-                    if 'podcast'  in str(link):
+                    if 'podcast' in str(link):
                         pass
                     else:
                         news_url_set.append(str(link))
-
         else:
             st.warning('Main article container not found on the page.')
-
     else:
         st.error(f'Failed to retrieve the web page. Status code: {response.status_code}')
     
@@ -171,9 +155,7 @@ def from_electrek(date) -> list:
                 try:
                     paragraph = article.find('p')
                     cleaned_text = clean_text(paragraph.text)
-                    st.markdown(f"**{cleaned_text}**\n\n[{url}]({url})")
-                    st.divider()
-                    contents_electrek.append(cleaned_text)
+                    contents_electrek.append({"summary": cleaned_text, "url": url})
                 except:
                     pass
             else:
@@ -195,5 +177,6 @@ if __name__ == "__main__":
     print(f'Total News on {mydate} is: {len(all_news)}')
 
     for news in all_news:
-        print(news)
+        print(f"Summary: {news['summary']}")
+        print(f"URL: {news['url']}")
         print('-'*50)
