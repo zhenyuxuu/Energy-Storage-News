@@ -24,6 +24,16 @@ selected_date = st.date_input(
     default_date
 )
 
+# Initialize session state variables
+if "news_data" not in st.session_state:
+    st.session_state.news_data = None
+if "display_titles" not in st.session_state:
+    st.session_state.display_titles = None
+if "txt_content" not in st.session_state:
+    st.session_state.txt_content = None
+if "button_label" not in st.session_state:
+    st.session_state.button_label = None
+
 col_start, col_download, col_spacer = st.columns([2, 3, 5])
 
 with col_start:
@@ -64,6 +74,7 @@ if start_btn:
 
     if not all_news_en:
         st.warning(f"NO NEWS ON {selected_date} - PLEASE CHANGE THE DATE")
+        st.session_state.news_data = None
     else:
         processed_news = []
         for i, item in enumerate(all_news_en):
@@ -110,18 +121,25 @@ if start_btn:
         txt_content = "\n\n".join(download_lines)
         button_label = "下载 中文.txt" if lang_choice == "中文" else "Download English.txt"
         
-        dl_placeholder.download_button(
-            label=button_label,
-            data=txt_content,
-            file_name=f"news_{selected_date}_{lang_choice.lower()}.txt",
-            mime="text/plain"
-        )
+        # Save to Session State
+        st.session_state.news_data = processed_news
+        st.session_state.display_titles = display_titles
+        st.session_state.txt_content = txt_content
+        st.session_state.button_label = button_label
 
-        for i, news_item in enumerate(processed_news):
-            title_to_show = display_titles[i] if i < len(display_titles) else news_item["title"]
-            url = news_item["url"]
+if st.session_state.news_data:
+    dl_placeholder.download_button(
+        label=st.session_state.button_label,
+        data=st.session_state.txt_content,
+        file_name=f"news_{selected_date}_{lang_choice.lower()}.txt",
+        mime="text/plain"
+    )
 
-            st.markdown(f"**{title_to_show}**")
-            if url:
-                st.markdown(url)
-            st.divider()
+    for i, news_item in enumerate(st.session_state.news_data):
+        title_to_show = st.session_state.display_titles[i] if i < len(st.session_state.display_titles) else news_item["title"]
+        url = news_item["url"]
+
+        st.markdown(f"**{title_to_show}**")
+        if url:
+            st.markdown(url)
+        st.divider()
