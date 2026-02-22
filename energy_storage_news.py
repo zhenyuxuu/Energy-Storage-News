@@ -1,9 +1,11 @@
-import streamlit as st
+import re
 from datetime import date
+import streamlit as st
 from markdown import markdown
 import get_news
 from translator import translate_news_to_chinese, save_translation_to_txt
-import re
+
+URL_PATTERN = re.compile(r'(https?://[^\s\)<>\]\[\'"]+)')
 
 col_title, col_lang = st.columns([4, 1])
 
@@ -18,21 +20,14 @@ with col_lang:
         index=0
     )
 
-default_date = date.today()
-selected_date = st.date_input(
-    "Date / 日期:",
-    default_date
-)
+selected_date = st.date_input("Date / 日期:", date.today())
 
-# Initialize session state variables
-if "news_data" not in st.session_state:
-    st.session_state.news_data = None
-if "display_titles" not in st.session_state:
-    st.session_state.display_titles = None
-if "txt_content" not in st.session_state:
-    st.session_state.txt_content = None
-if "button_label" not in st.session_state:
-    st.session_state.button_label = None
+# Session State
+session_keys = ["news_data", "display_titles", "txt_content", "button_label"]
+for key in session_keys:
+    if key not in st.session_state:
+        st.session_state[key] = None
+
 
 col_start, col_download, col_spacer = st.columns([2, 3, 5])
 
@@ -41,21 +36,22 @@ with col_start:
 
 dl_placeholder = col_download.empty()
 
-# get news
 if start_btn:
     captured_urls = []
+    
+    # Save Streamlit methods
     orig_markdown = st.markdown
     orig_write = st.write
     orig_divider = st.divider
     
     def catch_output(*args, **kwargs):
         for arg in args:
-            # clean and store URLs
-            urls = re.findall(r'(https?://[^\s\)<>\]\[\'"]+)', str(arg))
+            urls = URL_PATTERN.findall(str(arg))
             for found_url in urls:
                 if found_url not in captured_urls:
                     captured_urls.append(found_url)
                     
+    # Apply monkeypatching
     st.markdown = catch_output
     st.write = catch_output
 
@@ -79,22 +75,16 @@ if start_btn:
         processed_news = []
         for i, item in enumerate(all_news_en):
             raw_text = str(item)
-            
             url = captured_urls[i] if i < len(captured_urls) else ""
             
             if not url:
-                url_match = re.search(r'(https?://[^\s\)<>\]\[\'"]+)', raw_text)
+                url_match = URL_PATTERN.search(raw_text)
                 if url_match:
                     url = url_match.group(1)
             
-            clean_title = raw_text
-            if url:
-                clean_title = clean_title.replace(url, "")
-            
-            # Cleanup residual markdown links
+            clean_title = raw_text.replace(url, "") if url else raw_text
             clean_title = clean_title.replace("**", "")
-            clean_title = re.sub(r'\[\s*\]\(\s*\)', '', clean_title)
-            clean_title = clean_title.strip()
+            clean_title = re.sub(r'\[\s*\]\(\s*\)', '', clean_title).strip()
             
             processed_news.append({"title": clean_title, "url": url})
 
@@ -118,14 +108,11 @@ if start_btn:
             title_to_show = display_titles[i] if i < len(display_titles) else news_item["title"]
             download_lines.append(f"{i+1}. {title_to_show}")
 
-        txt_content = "\n\n".join(download_lines)
-        button_label = "下载 中文.txt" if lang_choice == "中文" else "Download English.txt"
-        
-        # Save to Session State
+        # Update Session State
         st.session_state.news_data = processed_news
         st.session_state.display_titles = display_titles
-        st.session_state.txt_content = txt_content
-        st.session_state.button_label = button_label
+        st.session_state.txt_content = "\n\n".join(download_lines)
+        st.session_state.button_label = "下载 中文.txt" if lang_choice == "中文" else "Download English.txt"
 
 if st.session_state.news_data:
     dl_placeholder.download_button(
@@ -136,7 +123,11 @@ if st.session_state.news_data:
     )
 
     for i, news_item in enumerate(st.session_state.news_data):
-        title_to_show = st.session_state.display_titles[i] if i < len(st.session_state.display_titles) else news_item["title"]
+        if i < len(st.session_state.display_titles):
+            title_to_show = st.session_state.display_titles[i]
+        else:
+            title_to_show = news_item["title"]
+            
         url = news_item["url"]
 
         st.markdown(f"**{title_to_show}**")
